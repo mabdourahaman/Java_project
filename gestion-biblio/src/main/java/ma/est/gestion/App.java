@@ -22,7 +22,7 @@ public class App {
         controller.setView(view);
 
         // Affichage
-        JFrame frame = new JFrame("Gestion des Livres");
+        JFrame frame = new JFrame("Gestion de Bibliothèque Universitaire");
         frame.setContentPane(view);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
