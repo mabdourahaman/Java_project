@@ -62,8 +62,7 @@ src
 │       ├── LivreService.java ├── AdherentService.java 
 
 │      ├── EmpruntService.java ├── UtilisateurService.java         {pour les contraintes} 
-
-           │└── ma/est/gestion/controller/ 
+ │└── ma/est/gestion/controller/ 
 
 │       ├── LivreController.java ├── EmpruntController.java  
 
