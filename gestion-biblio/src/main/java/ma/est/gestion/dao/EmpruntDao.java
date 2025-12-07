@@ -1,13 +1,30 @@
 package ma.est.gestion.dao;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Calendar;
+import java.sql.Connection;
+import java.util.*;
 
 import ma.est.gestion.model.Emprunt;
+import ma.est.gestion.util.DatabaseConnection;
 
-public class EmpruntDao {
 
+public interface EmpruntDao {
+
+    Connection conn = DatabaseConnection.getInstance();
+
+    void addEmprunt(Emprunt e);
+
+    List<Emprunt> getAllEmprunts();
+
+    void updateEmprunt(Emprunt e, String newStatut);
+
+    void deleteEmprunt(Emprunt e);
+
+    Emprunt findEmpruntByCode(String codeEmprunt);
+
+    List<Emprunt> findEmpruntsByAdherent(int numAdherent);
+
+    List<Emprunt> findEmpruntsByStatut(String statut);
+
+    void cloturerEmprunt(Emprunt e);
 
 }
