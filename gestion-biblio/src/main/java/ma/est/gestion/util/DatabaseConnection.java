@@ -5,21 +5,44 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    private static Connection connection;
-    private static final String URL = "jdbc:mysql://localhost:3306/bibliotheque";
-    private static final String USER = "root";
-    private static final String PASSWORD = "your_password";
-    
+
+	//Instance statique 
+	
+	private static DatabaseConnection instance;
+
+	
+	// Objet Connection
+
+	private Connection connection;
+
+	private final String URL = "jdbc:mysql://localhost:3306/bibliotheque";
+	private final String USER = "root";
+	private final String PASSWORD = "Your_password";
+
+
     @SuppressWarnings("CallToPrintStackTrace")
-    public static Connection getInstance() {
-        if (connection == null) {
-            try {
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            } catch (ClassNotFoundException | SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return connection;
-    }
+	private DatabaseConnection() {
+
+		try{
+			connection = DriverManager.getConnection(URL, USER, PASSWORD);
+			System.out.println(" Connection MySQL reussie ");
+		} catch (SQLException e ) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	public static DatabaseConnection getInstance() {
+
+		if (instance == null){
+			instance = new DatabaseConnection();
+		}
+		return instance;
+	}
+
+
+	public Connection getConnection() {
+		return connection;
+		
+	}
 }
