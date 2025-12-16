@@ -1,7 +1,7 @@
 package ma.est.gestion.dao;
 
 import java.sql.Connection;
-import java.util.*;
+import java.util.List;
 
 import ma.est.gestion.model.Emprunt;
 import ma.est.gestion.util.DatabaseConnection;
@@ -9,7 +9,7 @@ import ma.est.gestion.util.DatabaseConnection;
 
 public interface EmpruntDao {
 
-    Connection conn = DatabaseConnection.getInstance();
+    final Connection connection = DatabaseConnection.getInstance().getConnection();
 
     void addEmprunt(Emprunt e);
 

@@ -1,15 +1,33 @@
 package ma.est.gestion;
 
-import ma.est.gestion.controller.LivreController;
-import ma.est.gestion.dao.impl.LivreDaoImpl;
-import ma.est.gestion.view.LivrePanel;
+import javax.swing.SwingUtilities;
 
-import javax.swing.*;
+import ma.est.gestion.controller.EmpruntController;
+import ma.est.gestion.dao.impl.EmpruntDaoImpl;
+import ma.est.gestion.util.DatabaseConnection;
+import ma.est.gestion.view.EmpruntPanel;
 
 public class App {
+
+
+    public App(){
+
+        DatabaseConnection dbc = DatabaseConnection.getInstance();
+
+        EmpruntDaoImpl dao = new EmpruntDaoImpl();
+        EmpruntPanel view = new EmpruntPanel();
+
+        EmpruntController controller = new EmpruntController(dao, view);
+        view.setVisible(true);
+
+    }
+
+
     public static void main(String[] args) {
 
-        // DAO
+
+        SwingUtilities.invokeLater(() -> new App());
+        /*
         LivreDaoImpl dao = new LivreDaoImpl();
 
         // Controller créé d'abord (sans vue)
@@ -27,5 +45,9 @@ public class App {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
         frame.setVisible(true);
+    }
+         */
+        // DAO
+
     }
 }

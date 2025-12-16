@@ -9,16 +9,16 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ma.est.gestion.dao.EmpruntDao;
-import ma.est.gestion.dao.LivreDao;
+import ma.est.gestion.model.Adherent;
 import ma.est.gestion.model.Emprunt;
 import ma.est.gestion.model.Livre;
-import ma.est.gestion.model.Adherent;
 import ma.est.gestion.util.DatabaseConnection;
 
 public class EmpruntDaoImpl implements EmpruntDao {
 
-    private final Connection connection = DatabaseConnection.getInstance();
-    public EmpruntDaoImpl(LivreDao livreDao) {
+    private final Connection connection = DatabaseConnection.getInstance().getConnection();
+    
+    public EmpruntDaoImpl() {
 
     }
 
@@ -26,7 +26,9 @@ public class EmpruntDaoImpl implements EmpruntDao {
     @Override
     @SuppressWarnings("CallToPrintStackTrace")
     public void addEmprunt(Emprunt e) {
-        if (e == null) throw new IllegalArgumentException("Emprunt ne peut pas être null");
+        if (e == null) { 
+            throw new IllegalArgumentException("Emprunt ne peut pas être null");
+        }
 
         String checkSql = "SELECT COUNT(*) FROM emprunt WHERE codeEmprunt = ?";
         String insertSql = "INSERT INTO emprunt (codeEmprunt, numAdherent, dateEmprunt, dateRetour, statut, codeLivre) VALUES (?, ?, ?, ?, ?, ?)";
@@ -58,8 +60,6 @@ public class EmpruntDaoImpl implements EmpruntDao {
             updateLivreStmt.setString(1, e.getCodeLivre());
             updateLivreStmt.executeUpdate();
 
-            e.incrementerEmpruntActive();
-            System.out.println("Emprunt enregistré: " + e.getCodeEmprunt() + " - Statut: " + e.getStatut() + " - Emprunt actif: " + e.getEmpruntActive());
 
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -71,17 +71,17 @@ public class EmpruntDaoImpl implements EmpruntDao {
     @SuppressWarnings("CallToPrintStackTrace")
     public List<Emprunt> getAllEmprunts() {
         List<Emprunt> emprunts = new ArrayList<>();
-        String sql = "SELECT e.*, l.titre, l.auteur, l.nombreExemplaire, a.nomAdherent, a.prenomAdherent, a.emailAdherent " +
+        String sql = "SELECT e.*, l.code AS codeLivre, l.auteur, l.titre, l.nombreExemplaire, a.nom, a.prenom, a.email " +
                      "FROM emprunt e " +
                      "JOIN livre l ON e.codeLivre = l.code " +
-                     "JOIN adherent a ON e.numAdherent = a.numAdherent";
+                     "JOIN adherents a ON e.numAdherent = a.numAdherent";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 Livre livre = new Livre(
-                        rs.getString("code"),
+                        rs.getString("codeLivre"),
                         rs.getString("titre"),
                         rs.getString("auteur"),
                         rs.getInt("nombreExemplaire"),
@@ -89,9 +89,9 @@ public class EmpruntDaoImpl implements EmpruntDao {
                 );
                 Adherent adherent = new Adherent(
                         rs.getInt("numAdherent"),
-                        rs.getString("nomAdherent"),
-                        rs.getString("prenomAdherent"),
-                        rs.getString("emailAdherent")
+                        rs.getString("nom"),
+                        rs.getString("prenom"),
+                        rs.getString("email")
                 );
                 Emprunt emprunt = new Emprunt();
                 emprunt.setCodeEmprunt(rs.getString("codeEmprunt"));
@@ -160,10 +160,10 @@ public class EmpruntDaoImpl implements EmpruntDao {
             throw new IllegalArgumentException("Code ne peut pas être vide");
 
         String sql = "SELECT e.*, l.titre, l.auteur, l.nombreExemplaire, l.code AS codeLivre, " +
-                     "a.nomAdherent, a.prenomAdherent, a.emailAdherent, a.numAdherent " +
+                     "a.nom, a.prenom, a.email, a.numAdherent " +
                      "FROM emprunt e " +
                      "JOIN livre l ON e.codeLivre = l.code " +
-                     "JOIN adherent a ON e.numAdherent = a.numAdherent " +
+                     "JOIN adherents a ON e.numAdherent = a.numAdherent " +
                      "WHERE e.codeEmprunt = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -180,9 +180,9 @@ public class EmpruntDaoImpl implements EmpruntDao {
                     );
                     Adherent adherent = new Adherent(
                             rs.getInt("numAdherent"),
-                            rs.getString("nomAdherent"),
-                            rs.getString("prenomAdherent"),
-                            rs.getString("emailAdherent")
+                            rs.getString("nom"),
+                            rs.getString("prenom"),
+                            rs.getString("email")
                     );
                     Emprunt emprunt = new Emprunt();
                     emprunt.setCodeEmprunt(rs.getString("codeEmprunt"));
@@ -209,7 +209,7 @@ public class EmpruntDaoImpl implements EmpruntDao {
         if (e == null) throw new IllegalArgumentException("Emprunt ne peut pas être null");
 
         // Mettre à jour le statut
-        updateEmprunt(e, "Cloture");
+        updateEmprunt(e, "Retourné");
 
         // Incrémenter le nombre d'exemplaires du livre
         String sql = "UPDATE livre SET nombreExemplaire = nombreExemplaire + 1 WHERE code = ?";
@@ -220,8 +220,6 @@ public class EmpruntDaoImpl implements EmpruntDao {
             ex.printStackTrace();
         }
 
-        e.decrementerEmpruntActive();
-        System.out.println("Emprunt clôturé: " + e.getCodeEmprunt() + " - Livre restitué");
     }
 
    @Override
@@ -230,10 +228,10 @@ public class EmpruntDaoImpl implements EmpruntDao {
         List<Emprunt> result = new ArrayList<>();
 
         String sql = "SELECT e.*, l.code AS codeLivre, l.titre, l.auteur, l.nombreExemplaire, " +
-                 "a.nomAdherent, a.prenomAdherent, a.emailAdherent " +
+                 "a.nomAdherent, a.prenom, a.email " +
                  "FROM emprunt e " +
                  "JOIN livre l ON e.codeLivre = l.code " +
-                 "JOIN adherent a ON e.numAdherent = a.numAdherent " +
+                 "JOIN adherents a ON e.numAdherent = a.numAdherent " +
                  "WHERE e.numAdherent = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -250,9 +248,9 @@ public class EmpruntDaoImpl implements EmpruntDao {
 
                     Adherent adherent = new Adherent(
                         numAdherent,
-                        rs.getString("nomAdherent"),
-                        rs.getString("prenomAdherent"),
-                        rs.getString("emailAdherent")
+                        rs.getString("nom"),
+                        rs.getString("prenom"),
+                        rs.getString("email")
                     );
 
                 Emprunt emprunt = new Emprunt();
@@ -282,16 +280,16 @@ public class EmpruntDaoImpl implements EmpruntDao {
             throw new IllegalArgumentException("Statut ne peut pas être vide"); 
         List<Emprunt> result = new ArrayList<>(); 
         String sql = "SELECT e.*, l.code AS codeLivre, l.titre, l.auteur, l.nombreExemplaire, "
-                     + "a.numAdherent, a.nomAdherent, a.prenomAdherent, a.emailAdherent " 
+                     + "a.numAdherent, a.nom, a.prenom, a.email " 
                      + "FROM emprunt e " + "JOIN livre l ON e.codeLivre = l.code " 
-                     + "JOIN adherent a ON e.numAdherent = a.numAdherent "
+                     + "JOIN adherents a ON e.numAdherent = a.numAdherent "
                      + "WHERE e.statut = ?";
-            try { PreparedStatement stmt = connection.prepareStatement(sql); 
+            try ( PreparedStatement stmt = connection.prepareStatement(sql); ){
                 stmt.setString(1, statut); 
                 ResultSet rs = stmt.executeQuery(); 
                 while (rs.next()) { 
 
-                    Livre livre = new Livre( rs.getString("code"),
+                    Livre livre = new Livre( rs.getString("codeLivre"),
                             rs.getString("titre"), 
                             rs.getString("auteur"),
                             rs.getInt("nombreExemplaire"), 
@@ -299,9 +297,9 @@ public class EmpruntDaoImpl implements EmpruntDao {
                         );
                         
                         Adherent adherent = new Adherent( rs.getInt("numAdherent"),
-                            rs.getString("nomAdherent"), 
-                            rs.getString("prenomAdherent"),
-                            rs.getString("emailAdherent")
+                            rs.getString("nom"), 
+                            rs.getString("prenom"),
+                            rs.getString("email")
                          ); 
                          
                          Emprunt emprunt = new Emprunt();
@@ -311,7 +309,7 @@ public class EmpruntDaoImpl implements EmpruntDao {
                           emprunt.setDateEmprunt(new java.util.Date(rs.getDate("dateEmprunt").getTime()));
                           emprunt.setDateRetour(new java.util.Date(rs.getDate("dateRetour").getTime())); 
                           emprunt.setStatut(rs.getString("statut")); 
-                          emprunt.setCodeLivre(rs.getString("code")); 
+                          emprunt.setCodeLivre(rs.getString("codeLivre")); 
                           emprunt.setNumAdherent(rs.getInt("numAdherent")); 
                           result.add(emprunt); } }
                           

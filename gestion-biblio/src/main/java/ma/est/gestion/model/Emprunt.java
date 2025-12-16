@@ -1,13 +1,12 @@
 package ma.est.gestion.model;
 
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
 
 public class Emprunt {
 
     private String codeEmprunt;
     private int numAdherent;
-    private int empruntActive;
     private Date dateEmprunt;
     private Date dateRetour;
     private String statut = "Actif";
@@ -46,17 +45,17 @@ public class Emprunt {
 
         this.numAdherent = adherent.getNumAdherent();
         this.codeLivre = livre.getCode();
-        this.empruntActive = 1;
+
     }
 
-    public Emprunt() {}
+    public Emprunt() {
+
+    }
 
 
     // Getters
 
     public int getNumAdherent() { return numAdherent; }
-
-    public int getEmpruntActive() { return empruntActive; }
 
     public String getCodeEmprunt() { return codeEmprunt; }
 
@@ -92,19 +91,4 @@ public class Emprunt {
     public void setCodeLivre(String codeLivre) { this.codeLivre = codeLivre; }
 
 
-    // Methodes pour gerer le nombre d'emprunts actifs
-
-    public void incrementerEmpruntActive() { 
-        if (empruntActive >= 3) {
-            throw new IllegalStateException("Nombre maximal d'emprunts actifs atteint");
-        }
-        this.empruntActive++;
-    }
-
-    public void decrementerEmpruntActive() {
-        if (empruntActive <= 0) {
-            throw new IllegalStateException("Nombre d'emprunts actifs est déjà à zéro");
-        }
-        this.empruntActive--;
-    }
 }

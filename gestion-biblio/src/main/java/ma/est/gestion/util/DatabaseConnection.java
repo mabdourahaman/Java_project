@@ -15,9 +15,9 @@ public class DatabaseConnection {
 
 	private Connection connection;
 
-	private final String URL = "jdbc:mysql://localhost:3306/bibliotheque";
+	private final String URL = "jdbc:mysql://localhost:3306/gestion_bibliotheque";
 	private final String USER = "root";
-	private final String PASSWORD = "Your_password";
+	private final String PASSWORD = "97005502JinX";
 
 
     @SuppressWarnings("CallToPrintStackTrace")
