@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -31,12 +32,29 @@ public class EmpruntDaoImpl implements EmpruntDao {
         }
 
         String checkSql = "SELECT COUNT(*) FROM emprunt WHERE codeEmprunt = ?";
+        String checkExemp = "SELECT nombreExemplaire FROM livre WHERE code = ?";
         String insertSql = "INSERT INTO emprunt (codeEmprunt, numAdherent, dateEmprunt, dateRetour, statut, codeLivre) VALUES (?, ?, ?, ?, ?, ?)";
         String updateLivreSql = "UPDATE livre SET nombreExemplaire = nombreExemplaire - 1 WHERE code = ?";
 
-        try (PreparedStatement checkStmt = connection.prepareStatement(checkSql);
+        try (PreparedStatement insertExemp = connection.prepareStatement(checkExemp);
+             PreparedStatement checkStmt = connection.prepareStatement(checkSql);
              PreparedStatement insertStmt = connection.prepareStatement(insertSql);
              PreparedStatement updateLivreStmt = connection.prepareStatement(updateLivreSql)) {
+
+
+            
+            // Vérifier si le nombre d'exemplaires est supérieur à zéro
+            insertExemp.setString(1, e.getCodeLivre());
+            try (ResultSet rsEx = insertExemp.executeQuery()) {
+                if (rsEx.next()) {
+                if (rsEx.getInt("nombreExemplaire") <= 0) {
+                    throw new IllegalArgumentException("Il n'y a pas d'exemplaire disponible.");
+                }
+            } else {
+                    throw new IllegalArgumentException("Livre introuvable.");
+                }
+            }
+
 
             // Vérifier si l'emprunt existe déjà
             checkStmt.setString(1, e.getCodeEmprunt());
@@ -138,13 +156,17 @@ public class EmpruntDaoImpl implements EmpruntDao {
     @Override
     @SuppressWarnings("CallToPrintStackTrace")
     public void deleteEmprunt(Emprunt e) {
-        if (e == null) throw new IllegalArgumentException("Emprunt ne peut pas être null");
+        if (e == null) {
+            throw new IllegalArgumentException("Emprunt ne peut pas être null");
+        }
 
         String sql = "DELETE FROM emprunt WHERE codeEmprunt = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, e.getCodeEmprunt());
             int rows = stmt.executeUpdate();
-            if (rows == 0) throw new NoSuchElementException("Emprunt non trouvé: " + e.getCodeEmprunt());
+            if (rows == 0){
+                throw new NoSuchElementException("Emprunt non trouvé: " + e.getCodeEmprunt());
+            } 
 
             System.out.println("Emprunt supprimé: " + e.getCodeEmprunt());
         } catch (SQLException ex) {
@@ -209,7 +231,7 @@ public class EmpruntDaoImpl implements EmpruntDao {
         if (e == null) throw new IllegalArgumentException("Emprunt ne peut pas être null");
 
         // Mettre à jour le statut
-        updateEmprunt(e, "Retourné");
+        updateEmprunt(e, "Retourne");
 
         // Incrémenter le nombre d'exemplaires du livre
         String sql = "UPDATE livre SET nombreExemplaire = nombreExemplaire + 1 WHERE code = ?";
@@ -228,7 +250,7 @@ public class EmpruntDaoImpl implements EmpruntDao {
         List<Emprunt> result = new ArrayList<>();
 
         String sql = "SELECT e.*, l.code AS codeLivre, l.titre, l.auteur, l.nombreExemplaire, " +
-                 "a.nomAdherent, a.prenom, a.email " +
+                 "a.nom, a.prenom, a.email " +
                  "FROM emprunt e " +
                  "JOIN livre l ON e.codeLivre = l.code " +
                  "JOIN adherents a ON e.numAdherent = a.numAdherent " +
@@ -276,8 +298,9 @@ public class EmpruntDaoImpl implements EmpruntDao {
     @Override 
     @SuppressWarnings("CallToPrintStackTrace") 
     public List<Emprunt> findEmpruntsByStatut(String statut) { 
-        if (statut == null || statut.trim().isEmpty()) 
+        if (statut == null || statut.trim().isEmpty()) {
             throw new IllegalArgumentException("Statut ne peut pas être vide"); 
+        }
         List<Emprunt> result = new ArrayList<>(); 
         String sql = "SELECT e.*, l.code AS codeLivre, l.titre, l.auteur, l.nombreExemplaire, "
                      + "a.numAdherent, a.nom, a.prenom, a.email " 
@@ -305,7 +328,7 @@ public class EmpruntDaoImpl implements EmpruntDao {
                          Emprunt emprunt = new Emprunt();
                           emprunt.setCodeEmprunt(rs.getString("codeEmprunt")); 
                           emprunt.setLivre(livre); 
-                          emprunt.setAdherent(adherent); 
+                          emprunt.setAdherent(adherent);
                           emprunt.setDateEmprunt(new java.util.Date(rs.getDate("dateEmprunt").getTime()));
                           emprunt.setDateRetour(new java.util.Date(rs.getDate("dateRetour").getTime())); 
                           emprunt.setStatut(rs.getString("statut")); 
@@ -318,4 +341,35 @@ public class EmpruntDaoImpl implements EmpruntDao {
             }
              return result;
     }
+
+    @Override
+    public void modifierEmprunt(Emprunt e) {
+    if (e == null) {
+        throw new IllegalArgumentException("Emprunt null");
+    }
+
+    String sql = "UPDATE emprunt SET dateRetour = ?, statut = ? WHERE codeEmprunt = ?";
+
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+        if (e.getDateRetour() != null) {
+            stmt.setTimestamp(1, new Timestamp(e.getDateRetour().getTime()));
+        } else {
+            stmt.setNull(1, java.sql.Types.TIMESTAMP);
+        }
+
+        stmt.setString(2, e.getStatut());
+        stmt.setString(3, e.getCodeEmprunt());
+
+        int rowsUpdated = stmt.executeUpdate();
+
+        if (rowsUpdated == 0) {
+            throw new NoSuchElementException("Emprunt introuvable");
+        }
+
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+}
+
 }
