@@ -53,9 +53,19 @@ public class Emprunt {
     }
 
 
+    public Emprunt(String codeEmprunt2, int numAdherent2, Date dateEmprunt2, Date dateRetour2, String statut2, String codeLivre2) {
+        this.codeEmprunt = codeEmprunt2;
+        this.numAdherent = numAdherent2;
+        this.dateEmprunt = dateEmprunt2;
+        this.dateRetour = dateRetour2;
+        this.statut = statut2;
+        this.codeLivre = codeLivre2;
+	}
+
+
     // Getters
 
-    public int getNumAdherent() { return numAdherent; }
+	public int getNumAdherent() { return numAdherent; }
 
     public String getCodeEmprunt() { return codeEmprunt; }
 
