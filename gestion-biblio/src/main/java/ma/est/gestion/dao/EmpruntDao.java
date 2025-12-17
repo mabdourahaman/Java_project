@@ -13,6 +13,8 @@ public interface EmpruntDao {
 
     void addEmprunt(Emprunt e);
 
+    void modifierEmprunt(Emprunt e);
+
     List<Emprunt> getAllEmprunts();
 
     void updateEmprunt(Emprunt e, String newStatut);
