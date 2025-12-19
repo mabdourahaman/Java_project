@@ -29,4 +29,6 @@ public interface EmpruntDao {
 
     void cloturerEmprunt(Emprunt e);
 
+    int getEmpruntCount();
+
 }
