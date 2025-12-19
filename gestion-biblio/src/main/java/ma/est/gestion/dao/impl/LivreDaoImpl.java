@@ -1,40 +1,34 @@
 package ma.est.gestion.dao.impl;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.*;
+import java.util.*;
+import ma.est.gestion.model.*;
+import ma.est.gestion.util.DatabaseConnection;
 
-import ma.est.gestion.dao.LivreDao;
-import ma.est.gestion.model.Livre;
+public class LivreDaoImpl {
 
-public class LivreDaoImpl implements LivreDao {
-	private List<Livre> lv = new ArrayList<>();   // Simule une base de données
-	
-    @Override
-    public Livre findByCode(String code) {
-        return lv.stream()
-                .filter(l -> l.getCode().equals(code))
-                .findFirst()
-                .orElse(null);
-    }
+    public List<Livre> getAll() {
 
-    @Override
-    public List<Livre> findAll() {
-        return new ArrayList<>(lv);
-    }
+        List<Livre> livres = new ArrayList<>();
+        String sql = "SELECT * FROM livre";
 
-    @Override
-    public void save(Livre livre) {
-    	lv.add(livre);
-    }
+        try (Statement st =
+                     DatabaseConnection.getConnection().createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
 
-    @Override
-    public void update(Livre livre) {
-        delete(livre.getCode());  // On supprime l’ancien
-        save(livre);               // On ajoute le nouveau
-    }
-
-    @Override
-    public void delete(String code) {
-    	lv.removeIf(l -> l.getCode().equals(code));
+            while (rs.next()) {
+                livres.add(new Livre(
+                        rs.getInt("id"),
+                        rs.getString("code"),
+                        rs.getString("titre"),
+                        rs.getString("auteur"),
+                        rs.getInt("nombreExemplaire"),
+                        new Categorie(rs.getString("categorie"))
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return livres;
     }
 }
