@@ -1,19 +1,42 @@
 package ma.est.gestion.dao;
 
-import java.util.List;
-
+import java.sql.*;
 import ma.est.gestion.model.Utilisateur;
+import ma.est.gestion.model.Role;
 
-public interface UtilisateurDao {
+public class UtilisateurDao {
 
-	void ajouter(Utilisateur utilisateur);
+    private final String URL = "jdbc:mysql://localhost:3306/gestion_bibliotheque";
+    private final String USER = "root";
+    private final String PASS = "";
 
-	void modifier(Utilisateur utilisateur);
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASS);
+    }
 
-	void supprimer(int id);
+    // Vérifie login/password
+    public Utilisateur authentifier(String login, String password) {
+        String sql = "SELECT * FROM utilisateur WHERE login=? AND password=? AND statut='ACTIF'";
+        try (Connection c = getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
 
-	Utilisateur getById(int id);
+            ps.setString(1, login);
+            ps.setString(2, password);
 
-	List<Utilisateur> getAll();
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Utilisateur(
+                        rs.getInt("id"),
+                        rs.getString("login"),
+                        rs.getString("password"),
+                        rs.getString("statut"),
+                        new Role(rs.getString("role"))
+                );
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
-
