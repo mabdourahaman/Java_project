@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -18,8 +19,17 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
+import ma.est.gestion.model.Emprunt;
+
 public class EmpruntPanel extends JFrame {
     
+    private final DefaultTableModel tableModelEmp;
+    private final JTable tableEmp;
+    private final JButton buttonModifierEmp;
+    private final JButton buttonSupprimerEmp;
+    private final JButton buttonRechercherEmp;
+    private final JLabel label4Emp;
+
     public EmpruntPanel(){
 
         super("Gestion des emprunts");
@@ -41,18 +51,18 @@ public class EmpruntPanel extends JFrame {
         textFieldEmp.setMinimumSize(textSizeEmp);
         textFieldEmp.setMaximumSize(textSizeEmp);
 
-        JButton buttonRechercherEmp = new JButton("Rechercher");
+        buttonRechercherEmp = new JButton("Rechercher");
 
         panel1Emp.add(textFieldEmp);
         panel1Emp.add(buttonRechercherEmp);
 
         JPanel panel2Emp = new JPanel();
             panel2Emp.setBorder(BorderFactory.createTitledBorder("Liste des Emprunts :"));
-            DefaultTableModel tableModelEmp = new DefaultTableModel(
+            tableModelEmp = new DefaultTableModel(
                     new Object[]{"Code Emprunt", "Num Adherent", "Date Emprunt", "Date Retour", "Status", "Code Livre"}, 0
             );
-        JTable tableEmp = new JTable(tableModelEmp);
-        JLabel label4Emp = new JLabel("Total Emprunts : ");
+        tableEmp = new JTable(tableModelEmp);
+        label4Emp = new JLabel("Total Emprunts: 0");
         panel2Emp.setLayout(new BoxLayout(panel2Emp, BoxLayout.Y_AXIS));
         panel2Emp.add(new JScrollPane(tableEmp));
         panel2Emp.add(label4Emp);
@@ -69,8 +79,8 @@ public class EmpruntPanel extends JFrame {
         panel3Emp.setMinimumSize(panelSizeEmp);
         panel3Emp.setMaximumSize(panelSizeEmp);
 
-        JButton buttonModifierEmp = new JButton("Modifier Emprunt ");
-        JButton buttonSupprimerEmp = new JButton("Supprimer Emprunt ");
+        buttonModifierEmp = new JButton("Modifier Emprunt ");
+        buttonSupprimerEmp = new JButton("Supprimer Emprunt ");
         JLabel labEmp = new JLabel("Colonne modifiable : ");
         JLabel modEmp = new JLabel("Date Retour et Status");
 
@@ -141,9 +151,32 @@ public class EmpruntPanel extends JFrame {
     }
 
     public void refreshTable(List<Emprunt> liste) {
-        tableModel.setRowCount(0);
+        if (tableModelEmp == null) return;
+        tableModelEmp.setRowCount(0);
         for (Emprunt e : liste) {
-            tableModel.addRow(new Object[]{e.getCodeEmprunt(), e.getNumAdherent(), e.getDateEmprunt(), e.getDateRetour(), e.getStatut(), e.getCodeLivre()});
+            tableModelEmp.addRow(new Object[]{e.getCodeEmprunt(), e.getNumAdherent(), e.getDateEmprunt(), e.getDateRetour(), e.getStatut(), e.getCodeLivre()});
+            
         }
+    }
+
+    // Getters used by controller
+    public JTable getTable() {
+        return tableEmp;
+    }
+
+    public JButton getModifier() {
+        return buttonModifierEmp;
+    }
+
+    public JButton getSupprimer() {
+        return buttonSupprimerEmp;
+    }
+
+    public JButton getRechercher() {
+        return buttonRechercherEmp;
+    }
+
+    public JLabel getLabel4Emp() {
+        return label4Emp;
     }
 }
