@@ -1,35 +1,37 @@
-package ma.est.gestion.dao;
+package ma.est.gestion.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DBConnection {
-    private static DBConnection instance;
-    private Connection connection;
 
-    private final String URL = "jdbc:mysql://localhost:3306/gestion_biblio";
-    private final String USER = "root";
-    private final String PASSWORD = "password";
 
-    private DBConnection() {
+public class DatabaseConnection {
+	private static DatabaseConnection instance;
+    private static final String URL =
+            "jdbc:mysql://localhost:3306/gestion_bibliotheque?useSSL=false&serverTimezone=UTC";
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
+
+    private static Connection connection;
+
+    private DatabaseConnection() {}
+
+    public static Connection getConnection() {
         try {
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            System.out.println("Connexion à la base de données réussie.");
+            if (connection == null || connection.isClosed()) {
+                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            }
+            return connection;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Impossible de se connecter à la base", e);
         }
     }
 
-    public static DBConnection getInstance() {
-        if(instance == null) {
-            instance =  new DBConnection();
-        }
-
-        return instance;
-    }
-
-    public Connection getConnection() {
-        return connection;
-    }
+	public static DatabaseConnection getInstance() {
+		  if (instance == null) {
+	            instance = new DatabaseConnection();
+	        }
+	        return instance;
+	}
 }
