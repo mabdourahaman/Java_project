@@ -120,14 +120,16 @@ public class EmpruntDaoImpl implements EmpruntDao {
                 );
                 Adherent adherent = new Adherent(
                         rs.getInt("numAdherent"),
+                        rs.getString("email"),
                         rs.getString("nom"),
-                        rs.getString("prenom"),
-                        rs.getString("email")
+                        rs.getString("prenom")
                 );
                 Emprunt emprunt = new Emprunt();
                 emprunt.setCodeEmprunt(rs.getString("codeEmprunt"));
                 emprunt.setLivre(livre);
                 emprunt.setAdherent(adherent);
+                emprunt.setNomAdherent(adherent.getNomAdherent());
+                emprunt.setEmailAdherent(adherent.getEmailAdherent());
                 emprunt.setDateEmprunt(rs.getDate("dateEmprunt"));
                 emprunt.setDateRetour(rs.getDate("dateRetour"));
                 emprunt.setStatut(rs.getString("statut"));
@@ -223,6 +225,8 @@ public class EmpruntDaoImpl implements EmpruntDao {
                     emprunt.setCodeEmprunt(rs.getString("codeEmprunt"));
                     emprunt.setLivre(livre);
                     emprunt.setAdherent(adherent);
+                    emprunt.setNomAdherent(adherent.getNomAdherent());
+                    emprunt.setEmailAdherent(adherent.getEmailAdherent());
                     emprunt.setDateEmprunt(rs.getDate("dateEmprunt"));
                     emprunt.setDateRetour(rs.getDate("dateRetour"));
                     emprunt.setStatut(rs.getString("statut"));
@@ -283,15 +287,17 @@ public class EmpruntDaoImpl implements EmpruntDao {
 
                     Adherent adherent = new Adherent(
                         numAdherent,
+                        rs.getString("email"),
                         rs.getString("nom"),
-                        rs.getString("prenom"),
-                        rs.getString("email")
+                        rs.getString("prenom")
                     );
 
                 Emprunt emprunt = new Emprunt();
                 emprunt.setCodeEmprunt(rs.getString("codeEmprunt"));
                 emprunt.setLivre(livre);
                 emprunt.setAdherent(adherent);
+                emprunt.setNomAdherent(adherent.getNomAdherent());
+                emprunt.setEmailAdherent(adherent.getEmailAdherent());
                 emprunt.setDateEmprunt(rs.getDate("dateEmprunt"));
                 emprunt.setDateRetour(rs.getDate("dateRetour"));
                 emprunt.setStatut(rs.getString("statut"));
@@ -333,15 +339,17 @@ public class EmpruntDaoImpl implements EmpruntDao {
                         );
                         
                         Adherent adherent = new Adherent( rs.getInt("numAdherent"),
-                            rs.getString("nom"), 
-                            rs.getString("prenom"),
-                            rs.getString("email")
+                            rs.getString("email"), 
+                            rs.getString("nom"),
+                            rs.getString("prenom")
                          ); 
                          
                          Emprunt emprunt = new Emprunt();
                           emprunt.setCodeEmprunt(rs.getString("codeEmprunt")); 
                           emprunt.setLivre(livre); 
                           emprunt.setAdherent(adherent);
+                          emprunt.setNomAdherent(adherent.getNomAdherent());
+                          emprunt.setEmailAdherent(adherent.getEmailAdherent());
                           emprunt.setDateEmprunt(new java.util.Date(rs.getDate("dateEmprunt").getTime()));
                           emprunt.setDateRetour(new java.util.Date(rs.getDate("dateRetour").getTime())); 
                           emprunt.setStatut(rs.getString("statut")); 

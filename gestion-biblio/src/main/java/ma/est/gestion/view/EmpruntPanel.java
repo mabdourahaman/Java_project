@@ -5,7 +5,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -17,7 +20,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 import ma.est.gestion.model.Emprunt;
 
@@ -25,9 +30,8 @@ public class EmpruntPanel extends JFrame {
     
     private final DefaultTableModel tableModelEmp;
     private final JTable tableEmp;
-    private final JButton buttonModifierEmp;
-    private final JButton buttonSupprimerEmp;
-    private final JButton buttonRechercherEmp;
+    private final JButton buttonModifierEmp, buttonResetEmp, buttonSupprimerEmp;
+
     private final JLabel label4Emp;
 
     public EmpruntPanel(){
@@ -43,25 +47,68 @@ public class EmpruntPanel extends JFrame {
             BorderFactory.createTitledBorder("Recherche d’ Emprunt")
         );
 
-        panel1Emp.setLayout(new FlowLayout( FlowLayout.LEFT, 10, 10));
+        // Center the search group (textfield + button) using GridBag so the group stays centered
+        panel1Emp.setLayout(new GridBagLayout());
 
-        JTextField textFieldEmp = new JTextField(35);
-        Dimension textSizeEmp = new Dimension(200, 30);
-        textFieldEmp.setPreferredSize(textSizeEmp);
-        textFieldEmp.setMinimumSize(textSizeEmp);
-        textFieldEmp.setMaximumSize(textSizeEmp);
+        // 50 columns preferred; set height equal to buttons (30px)
+        JTextField textFieldEmp = new JTextField(50);
+        Dimension tfSize = textFieldEmp.getPreferredSize();
+        textFieldEmp.setPreferredSize(new Dimension(tfSize.width, 30));
+        textFieldEmp.setMinimumSize(new Dimension(100, 30));
+        textFieldEmp.setMaximumSize(new Dimension(1000, 30));
 
-        buttonRechercherEmp = new JButton("Rechercher");
+        buttonResetEmp = new JButton("Réinitialiser");
 
-        panel1Emp.add(textFieldEmp);
-        panel1Emp.add(buttonRechercherEmp);
+        // Group them tightly in a small FlowLayout panel so they stay close
+        JPanel group = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
+        group.setOpaque(false);
+        group.add(textFieldEmp);
+        group.add(buttonResetEmp);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        // left spacer
+        gbc.gridx = 0; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1Emp.add(new JPanel() {{ setOpaque(false); }}, gbc);
+
+        // group in center
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1; gbc.weightx = 0; gbc.anchor = GridBagConstraints.CENTER;
+        panel1Emp.add(group, gbc);
+
+        // right spacer
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel1Emp.add(new JPanel() {{ setOpaque(false); }}, gbc);
 
         JPanel panel2Emp = new JPanel();
             panel2Emp.setBorder(BorderFactory.createTitledBorder("Liste des Emprunts :"));
             tableModelEmp = new DefaultTableModel(
-                    new Object[]{"Code Emprunt", "Num Adherent", "Date Emprunt", "Date Retour", "Status", "Code Livre"}, 0
+                    new Object[]{"Code Emprunt", "Num Adherent", "Nom Adherent", "Email", "Date Emprunt", "Date Retour", "Status", "Code Livre"}, 0
             );
         tableEmp = new JTable(tableModelEmp);
+
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModelEmp);
+        tableEmp.setRowSorter(sorter);
+
+        textFieldEmp.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filter(); }
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filter(); }
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filter(); }
+
+            private void filter() {
+                String text = textFieldEmp.getText().trim();
+                sorter.setRowFilter(text.isEmpty() ? null : RowFilter.regexFilter("(?i)" + Pattern.quote(text)));
+            }
+        });
+
+        buttonResetEmp.addActionListener(ev -> {
+            textFieldEmp.setText("");
+            sorter.setRowFilter(null);
+        });
+
         label4Emp = new JLabel("Total Emprunts: 0");
         panel2Emp.setLayout(new BoxLayout(panel2Emp, BoxLayout.Y_AXIS));
         panel2Emp.add(new JScrollPane(tableEmp));
@@ -100,9 +147,9 @@ public class EmpruntPanel extends JFrame {
         buttonSupprimerEmp.setMinimumSize(buttonSizeEmp);
         buttonSupprimerEmp.setMaximumSize(buttonSizeEmp);
 
-        buttonRechercherEmp.setPreferredSize(buttonSizeEmp);
-        buttonRechercherEmp.setMinimumSize(buttonSizeEmp);
-        buttonRechercherEmp.setMaximumSize(buttonSizeEmp);
+        buttonResetEmp.setPreferredSize(buttonSizeEmp);
+        buttonResetEmp.setMinimumSize(buttonSizeEmp);
+        buttonResetEmp.setMaximumSize(buttonSizeEmp);
 
 
         panel3Emp.add(Box.createVerticalStrut(30));
@@ -121,7 +168,7 @@ public class EmpruntPanel extends JFrame {
         */
 
 
-        JButton[] buttons = {buttonModifierEmp, buttonRechercherEmp };
+        JButton[] buttons = {buttonModifierEmp, buttonResetEmp };
 
         for (JButton b : buttons) {
             styliserBouton(b, new Color(46, 204, 113));
@@ -154,12 +201,19 @@ public class EmpruntPanel extends JFrame {
         if (tableModelEmp == null) return;
         tableModelEmp.setRowCount(0);
         for (Emprunt e : liste) {
-            tableModelEmp.addRow(new Object[]{e.getCodeEmprunt(), e.getNumAdherent(), e.getDateEmprunt(), e.getDateRetour(), e.getStatut(), e.getCodeLivre()});
-            
+            tableModelEmp.addRow(new Object[]{
+                    e.getCodeEmprunt(),
+                    e.getNumAdherent(),
+                    e.getNomAdherent(),
+                    e.getEmailAdherent(),
+                    e.getDateEmprunt(),
+                    e.getDateRetour(),
+                    e.getStatut(),
+                    e.getCodeLivre()
+            });
         }
     }
 
-    // Getters used by controller
     public JTable getTable() {
         return tableEmp;
     }
@@ -172,9 +226,6 @@ public class EmpruntPanel extends JFrame {
         return buttonSupprimerEmp;
     }
 
-    public JButton getRechercher() {
-        return buttonRechercherEmp;
-    }
 
     public JLabel getLabel4Emp() {
         return label4Emp;
