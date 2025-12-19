@@ -1,10 +1,6 @@
 package ma.est.gestion.dao.impl;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -18,395 +14,302 @@ import ma.est.gestion.util.DatabaseConnection;
 public class EmpruntDaoImpl implements EmpruntDao {
 
     private final Connection connection = DatabaseConnection.getInstance().getConnection();
-    
-    public EmpruntDaoImpl() {
 
-    }
-
-    // Ajouter un nouvel emprunt
+    // ===================== AJOUT =====================
     @Override
-    @SuppressWarnings("CallToPrintStackTrace")
     public void addEmprunt(Emprunt e) {
-        if (e == null) { 
-            throw new IllegalArgumentException("Emprunt ne peut pas être null");
-        }
-        String empruntactif = "SELECT COUNT(*) FROM emprunt WHERE numAdherent = ? AND statut = 'Actif'";
-        try (PreparedStatement stmt = connection.prepareStatement(empruntactif)) {
-            stmt.setInt(1, e.getNumAdherent());
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    int count = rs.getInt(1);
-                    if (count >= 3) {
-                        throw new IllegalStateException("Un adhérent ne peut pas avoir plus de 3 emprunts actifs.");
-                    }
-                }
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
 
-        String checkSql = "SELECT COUNT(*) FROM emprunt WHERE codeEmprunt = ?";
-        String checkExemp = "SELECT nombreExemplaire FROM livre WHERE code = ?";
-        String insertSql = "INSERT INTO emprunt (codeEmprunt, numAdherent, dateEmprunt, dateRetour, statut, codeLivre) VALUES (?, ?, ?, ?, ?, ?)";
-        String updateLivreSql = "UPDATE livre SET nombreExemplaire = nombreExemplaire - 1 WHERE code = ?";
+        if (e == null)
+            throw new IllegalArgumentException("Emprunt null");
 
-        try (PreparedStatement insertExemp = connection.prepareStatement(checkExemp);
-             PreparedStatement checkStmt = connection.prepareStatement(checkSql);
-             PreparedStatement insertStmt = connection.prepareStatement(insertSql);
-             PreparedStatement updateLivreStmt = connection.prepareStatement(updateLivreSql)) {
+        String checkEx =
+                "SELECT nombreExemplaire FROM livre WHERE code=?";
+        String insert =
+                "INSERT INTO emprunt (codeEmprunt, numAdherent, dateEmprunt, dateRetour, statut, codeLivre) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+        String updateLivre =
+                "UPDATE livre SET nombreExemplaire = nombreExemplaire - 1 WHERE code=?";
 
+        try (
+            PreparedStatement psCheck = connection.prepareStatement(checkEx);
+            PreparedStatement psInsert = connection.prepareStatement(insert);
+            PreparedStatement psUpdate = connection.prepareStatement(updateLivre)
+        ) {
+            psCheck.setString(1, e.getCodeLivre());
+            ResultSet rs = psCheck.executeQuery();
 
-            // Vérifier si le nombre d'exemplaires est supérieur à zéro
-            insertExemp.setString(1, e.getCodeLivre());
-            try (ResultSet rsEx = insertExemp.executeQuery()) {
-                if (rsEx.next()) {
-                if (rsEx.getInt("nombreExemplaire") <= 0) {
-                    throw new IllegalArgumentException("Il n'y a pas d'exemplaire disponible.");
-                }
-            } else {
-                    throw new IllegalArgumentException("Livre introuvable.");
-                }
-            }
+            if (!rs.next() || rs.getInt("nombreExemplaire") <= 0)
+                throw new IllegalStateException("Aucun exemplaire disponible");
 
+            psInsert.setString(1, e.getCodeEmprunt());
+            psInsert.setInt(2, e.getNumAdherent());
+            psInsert.setDate(3, new java.sql.Date(e.getDateEmprunt().getTime()));
+            psInsert.setDate(4, new java.sql.Date(e.getDateRetour().getTime()));
+            psInsert.setString(5, e.getStatut());
+            psInsert.setString(6, e.getCodeLivre());
+            psInsert.executeUpdate();
 
-            // Vérifier si l'emprunt existe déjà
-            checkStmt.setString(1, e.getCodeEmprunt());
-            try (ResultSet rs = checkStmt.executeQuery()) {
-                rs.next();
-                if (rs.getInt(1) > 0) {
-                    throw new IllegalArgumentException("Cet emprunt existe déjà");
-                }
-            }
-
-            // Insérer le nouvel emprunt
-            insertStmt.setString(1, e.getCodeEmprunt());
-            insertStmt.setInt(2, e.getNumAdherent());
-            insertStmt.setDate(3, new java.sql.Date(e.getDateEmprunt().getTime()));
-            insertStmt.setDate(4, new java.sql.Date(e.getDateRetour().getTime()));
-            insertStmt.setString(5, e.getStatut());
-            insertStmt.setString(6, e.getCodeLivre());
-            insertStmt.executeUpdate();
-
-            // Mettre à jour le nombre d'exemplaires du livre
-            updateLivreStmt.setString(1, e.getCodeLivre());
-            updateLivreStmt.executeUpdate();
-
+            psUpdate.setString(1, e.getCodeLivre());
+            psUpdate.executeUpdate();
 
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
 
-    // Récupérer tous les emprunts
+    // ===================== GET ALL =====================
     @Override
-    @SuppressWarnings("CallToPrintStackTrace")
     public List<Emprunt> getAllEmprunts() {
-        List<Emprunt> emprunts = new ArrayList<>();
-        String sql = "SELECT e.*, l.code AS codeLivre, l.auteur, l.titre, l.nombreExemplaire, a.nom, a.prenom, a.email " +
-                     "FROM emprunt e " +
-                     "JOIN livre l ON e.codeLivre = l.code " +
-                     "JOIN adherents a ON e.numAdherent = a.numAdherent";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        List<Emprunt> list = new ArrayList<>();
+
+        String sql =
+            "SELECT e.*, l.code AS codeLivre, l.titre, l.auteur, l.nombreExemplaire, " +
+            "a.numAdherent, a.nom, a.prenom, a.email " +
+            "FROM emprunt e " +
+            "JOIN livre l ON e.codeLivre = l.code " +
+            "JOIN adherents a ON e.numAdherent = a.numAdherent";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
+
                 Livre livre = new Livre(
                         rs.getString("codeLivre"),
                         rs.getString("titre"),
                         rs.getString("auteur"),
-                        rs.getInt("nombreExemplaire"),
-                        null
+                        rs.getInt("nombreExemplaire")
                 );
-                Adherent adherent = new Adherent(
+
+                Adherent adh = new Adherent(
                         rs.getInt("numAdherent"),
                         rs.getString("email"),
                         rs.getString("nom"),
                         rs.getString("prenom")
                 );
-                Emprunt emprunt = new Emprunt();
-                emprunt.setCodeEmprunt(rs.getString("codeEmprunt"));
-                emprunt.setLivre(livre);
-                emprunt.setAdherent(adherent);
-                emprunt.setNomAdherent(adherent.getNomAdherent());
-                emprunt.setEmailAdherent(adherent.getEmailAdherent());
-                emprunt.setDateEmprunt(rs.getDate("dateEmprunt"));
-                emprunt.setDateRetour(rs.getDate("dateRetour"));
-                emprunt.setStatut(rs.getString("statut"));
-                emprunt.setCodeLivre(livre.getCode());
-                emprunt.setNumAdherent(adherent.getNumAdherent());
 
-                emprunts.add(emprunt);
+                Emprunt e = new Emprunt();
+                e.setCodeEmprunt(rs.getString("codeEmprunt"));
+                e.setLivre(livre);
+                e.setAdherent(adh);
+                e.setDateEmprunt(rs.getDate("dateEmprunt"));
+                e.setDateRetour(rs.getDate("dateRetour"));
+                e.setStatut(rs.getString("statut"));
+                e.setCodeLivre(livre.getCode());
+                e.setNumAdherent(adh.getNumAdherent());
+
+                list.add(e);
             }
 
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-        return emprunts;
+        return list;
     }
 
-    // Mettre à jour le statut d'un emprunt
+    // ===================== UPDATE STATUT =====================
     @Override
-    @SuppressWarnings("CallToPrintStackTrace")
-    public void updateEmprunt(Emprunt e, String newStatut) {
-        if (e == null) throw new IllegalArgumentException("Emprunt ne peut pas être null");
-        if (newStatut == null || newStatut.trim().isEmpty())
-            throw new IllegalArgumentException("Statut ne peut pas être vide");
+    public void updateEmprunt(Emprunt e, String statut) {
 
-        String sql = "UPDATE emprunt SET statut = ? WHERE codeEmprunt = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, newStatut);
-            stmt.setString(2, e.getCodeEmprunt());
+        String sql = "UPDATE emprunt SET statut=? WHERE codeEmprunt=?";
 
-            int rows = stmt.executeUpdate();
-            if (rows == 0) throw new NoSuchElementException("Emprunt non trouvé: " + e.getCodeEmprunt());
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
-            System.out.println("Emprunt mis à jour: " + e.getCodeEmprunt() + " -> " + newStatut);
+            ps.setString(1, statut);
+            ps.setString(2, e.getCodeEmprunt());
+
+            if (ps.executeUpdate() == 0)
+                throw new NoSuchElementException("Emprunt introuvable");
+
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
 
-    // Supprimer un emprunt
+    // ===================== DELETE =====================
     @Override
-    @SuppressWarnings("CallToPrintStackTrace")
     public void deleteEmprunt(Emprunt e) {
-        if (e == null) {
-            throw new IllegalArgumentException("Emprunt ne peut pas être null");
-        }
 
-        String sql = "DELETE FROM emprunt WHERE codeEmprunt = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, e.getCodeEmprunt());
-            int rows = stmt.executeUpdate();
-            if (rows == 0){
-                throw new NoSuchElementException("Emprunt non trouvé: " + e.getCodeEmprunt());
-            } 
+        String sql = "DELETE FROM emprunt WHERE codeEmprunt=?";
 
-            System.out.println("Emprunt supprimé: " + e.getCodeEmprunt());
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, e.getCodeEmprunt());
+            ps.executeUpdate();
+
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
 
-    // Trouver emprunt par code
+    // ===================== FIND BY CODE =====================
     @Override
-    @SuppressWarnings("CallToPrintStackTrace")
-    public Emprunt findEmpruntByCode(String codeEmprunt) {
-        if (codeEmprunt == null || codeEmprunt.trim().isEmpty())
-            throw new IllegalArgumentException("Code ne peut pas être vide");
+    public Emprunt findEmpruntByCode(String code) {
 
-        String sql = "SELECT e.*, l.titre, l.auteur, l.nombreExemplaire, l.code AS codeLivre, " +
-                     "a.nom, a.prenom, a.email, a.numAdherent " +
-                     "FROM emprunt e " +
-                     "JOIN livre l ON e.codeLivre = l.code " +
-                     "JOIN adherents a ON e.numAdherent = a.numAdherent " +
-                     "WHERE e.codeEmprunt = ?";
+        String sql =
+            "SELECT e.*, l.code AS codeLivre, l.titre, l.auteur, l.nombreExemplaire, " +
+            "a.numAdherent, a.nom, a.prenom, a.email " +
+            "FROM emprunt e " +
+            "JOIN livre l ON e.codeLivre = l.code " +
+            "JOIN adherents a ON e.numAdherent = a.numAdherent " +
+            "WHERE e.codeEmprunt=?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, codeEmprunt);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
-                    Livre livre = new Livre(
-                            rs.getString("codeLivre"),
-                            rs.getString("titre"),
-                            rs.getString("auteur"),
-                            rs.getInt("nombreExemplaire"),
-                            null
-                    );
-                    Adherent adherent = new Adherent(
-                            rs.getInt("numAdherent"),
-                            rs.getString("nom"),
-                            rs.getString("prenom"),
-                            rs.getString("email")
-                    );
-                    Emprunt emprunt = new Emprunt();
-                    emprunt.setCodeEmprunt(rs.getString("codeEmprunt"));
-                    emprunt.setLivre(livre);
-                    emprunt.setAdherent(adherent);
-                    emprunt.setNomAdherent(adherent.getNomAdherent());
-                    emprunt.setEmailAdherent(adherent.getEmailAdherent());
-                    emprunt.setDateEmprunt(rs.getDate("dateEmprunt"));
-                    emprunt.setDateRetour(rs.getDate("dateRetour"));
-                    emprunt.setStatut(rs.getString("statut"));
-                    emprunt.setCodeLivre(livre.getCode());
-                    emprunt.setNumAdherent(adherent.getNumAdherent());
-                    return emprunt;
-                }
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        throw new NoSuchElementException("Emprunt non trouvé: " + codeEmprunt);
-    }
+            ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
 
-    // Clôturer un emprunt
-    @Override
-    @SuppressWarnings("CallToPrintStackTrace")
-    public void cloturerEmprunt(Emprunt e) {
-        if (e == null) throw new IllegalArgumentException("Emprunt ne peut pas être null");
+            if (rs.next()) {
 
-        // Mettre à jour le statut
-        updateEmprunt(e, "Retourne");
-
-        // Incrémenter le nombre d'exemplaires du livre
-        String sql = "UPDATE livre SET nombreExemplaire = nombreExemplaire + 1 WHERE code = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, e.getCodeLivre());
-            stmt.executeUpdate();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-
-    }
-
-   @Override
-    @SuppressWarnings("CallToPrintStackTrace")
-    public List<Emprunt> findEmpruntsByAdherent(int numAdherent) {
-        List<Emprunt> result = new ArrayList<>();
-
-        String sql = "SELECT e.*, l.code AS codeLivre, l.titre, l.auteur, l.nombreExemplaire, " +
-                 "a.nom, a.prenom, a.email " +
-                 "FROM emprunt e " +
-                 "JOIN livre l ON e.codeLivre = l.code " +
-                 "JOIN adherents a ON e.numAdherent = a.numAdherent " +
-                 "WHERE e.numAdherent = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, numAdherent);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Livre livre = new Livre(
+                Livre livre = new Livre(
                         rs.getString("codeLivre"),
                         rs.getString("titre"),
                         rs.getString("auteur"),
-                        rs.getInt("nombreExemplaire"),
-                        null
-                    );
+                        rs.getInt("nombreExemplaire")
+                );
 
-                    Adherent adherent = new Adherent(
-                        numAdherent,
+                Adherent adh = new Adherent(
+                        rs.getInt("numAdherent"),
                         rs.getString("email"),
                         rs.getString("nom"),
                         rs.getString("prenom")
-                    );
+                );
 
-                Emprunt emprunt = new Emprunt();
-                emprunt.setCodeEmprunt(rs.getString("codeEmprunt"));
-                emprunt.setLivre(livre);
-                emprunt.setAdherent(adherent);
-                emprunt.setNomAdherent(adherent.getNomAdherent());
-                emprunt.setEmailAdherent(adherent.getEmailAdherent());
-                emprunt.setDateEmprunt(rs.getDate("dateEmprunt"));
-                emprunt.setDateRetour(rs.getDate("dateRetour"));
-                emprunt.setStatut(rs.getString("statut"));
-                emprunt.setCodeLivre(livre.getCode());
-                emprunt.setNumAdherent(numAdherent);
+                Emprunt e = new Emprunt();
+                e.setCodeEmprunt(code);
+                e.setLivre(livre);
+                e.setAdherent(adh);
+                e.setDateEmprunt(rs.getDate("dateEmprunt"));
+                e.setDateRetour(rs.getDate("dateRetour"));
+                e.setStatut(rs.getString("statut"));
+                e.setCodeLivre(livre.getCode());
+                e.setNumAdherent(adh.getNumAdherent());
 
-                result.add(emprunt);
+                return e;
             }
-        }
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-    }
 
-    return result;
-}
-
-    @Override 
-    @SuppressWarnings("CallToPrintStackTrace") 
-    public List<Emprunt> findEmpruntsByStatut(String statut) { 
-        if (statut == null || statut.trim().isEmpty()) {
-            throw new IllegalArgumentException("Statut ne peut pas être vide"); 
-        }
-        List<Emprunt> result = new ArrayList<>(); 
-        String sql = "SELECT e.*, l.code AS codeLivre, l.titre, l.auteur, l.nombreExemplaire, "
-                     + "a.numAdherent, a.nom, a.prenom, a.email " 
-                     + "FROM emprunt e " + "JOIN livre l ON e.codeLivre = l.code " 
-                     + "JOIN adherents a ON e.numAdherent = a.numAdherent "
-                     + "WHERE e.statut = ?";
-            try ( PreparedStatement stmt = connection.prepareStatement(sql); ){
-                stmt.setString(1, statut); 
-                ResultSet rs = stmt.executeQuery(); 
-                while (rs.next()) { 
-
-                    Livre livre = new Livre( rs.getString("codeLivre"),
-                            rs.getString("titre"), 
-                            rs.getString("auteur"),
-                            rs.getInt("nombreExemplaire"), 
-                            null 
-                        );
-                        
-                        Adherent adherent = new Adherent( rs.getInt("numAdherent"),
-                            rs.getString("email"), 
-                            rs.getString("nom"),
-                            rs.getString("prenom")
-                         ); 
-                         
-                         Emprunt emprunt = new Emprunt();
-                          emprunt.setCodeEmprunt(rs.getString("codeEmprunt")); 
-                          emprunt.setLivre(livre); 
-                          emprunt.setAdherent(adherent);
-                          emprunt.setNomAdherent(adherent.getNomAdherent());
-                          emprunt.setEmailAdherent(adherent.getEmailAdherent());
-                          emprunt.setDateEmprunt(new java.util.Date(rs.getDate("dateEmprunt").getTime()));
-                          emprunt.setDateRetour(new java.util.Date(rs.getDate("dateRetour").getTime())); 
-                          emprunt.setStatut(rs.getString("statut")); 
-                          emprunt.setCodeLivre(rs.getString("codeLivre")); 
-                          emprunt.setNumAdherent(rs.getInt("numAdherent")); 
-                          result.add(emprunt); } }
-                          
-            catch (SQLException ex) { 
-                ex.printStackTrace(); 
-            }
-             return result;
-    }
-
-    @Override
-    @SuppressWarnings("CallToPrintStackTrace")
-    public void modifierEmprunt(Emprunt e) {
-    if (e == null) {
-        throw new IllegalArgumentException("Emprunt null");
-    }
-
-    String sql = "UPDATE emprunt SET dateRetour = ?, statut = ? WHERE codeEmprunt = ?";
-
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-
-        if (e.getDateRetour() != null) {
-            stmt.setTimestamp(1, new Timestamp(e.getDateRetour().getTime()));
-        } else {
-            stmt.setNull(1, java.sql.Types.TIMESTAMP);
-        }
-
-        stmt.setString(2, e.getStatut());
-        stmt.setString(3, e.getCodeEmprunt());
-
-        int rowsUpdated = stmt.executeUpdate();
-
-        if (rowsUpdated == 0) {
-            throw new NoSuchElementException("Emprunt introuvable");
-        }
-
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-    }
-}
-
-    @SuppressWarnings("CallToPrintStackTrace")
-    @Override
-    public int getEmpruntCount() {
-        String sql = "SELECT COUNT(*) AS total FROM emprunt";
-        int total = 0;
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                total = (rs.getInt("total"));
-            }
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
-        return total;
+        throw new NoSuchElementException("Emprunt introuvable");
+    }
+
+    // ===================== MODIFIER =====================
+    @Override
+    public void modifierEmprunt(Emprunt e) {
+
+        String sql =
+            "UPDATE emprunt SET numAdherent=?, dateEmprunt=?, dateRetour=?, statut=?, codeLivre=? " +
+            "WHERE codeEmprunt=?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, e.getNumAdherent());
+            ps.setDate(2, new java.sql.Date(e.getDateEmprunt().getTime()));
+            ps.setDate(3, new java.sql.Date(e.getDateRetour().getTime()));
+            ps.setString(4, e.getStatut());
+            ps.setString(5, e.getCodeLivre());
+            ps.setString(6, e.getCodeEmprunt());
+
+            ps.executeUpdate();
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // ===================== PAR ADHERENT =====================
+    @Override
+    public List<Emprunt> findEmpruntsByAdherent(int numAdherent) {
+
+        List<Emprunt> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM emprunt WHERE numAdherent=?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setInt(1, numAdherent);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Emprunt e = new Emprunt();
+                e.setCodeEmprunt(rs.getString("codeEmprunt"));
+                e.setNumAdherent(numAdherent);
+                e.setCodeLivre(rs.getString("codeLivre"));
+                e.setDateEmprunt(rs.getDate("dateEmprunt"));
+                e.setDateRetour(rs.getDate("dateRetour"));
+                e.setStatut(rs.getString("statut"));
+                list.add(e);
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    // ===================== PAR STATUT =====================
+    @Override
+    public List<Emprunt> findEmpruntsByStatut(String statut) {
+
+        List<Emprunt> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM emprunt WHERE statut=?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, statut);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Emprunt e = new Emprunt();
+                e.setCodeEmprunt(rs.getString("codeEmprunt"));
+                e.setNumAdherent(rs.getInt("numAdherent"));
+                e.setCodeLivre(rs.getString("codeLivre"));
+                e.setDateEmprunt(rs.getDate("dateEmprunt"));
+                e.setDateRetour(rs.getDate("dateRetour"));
+                e.setStatut(statut);
+                list.add(e);
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    // ===================== CLOTURER =====================
+    @Override
+    public void cloturerEmprunt(Emprunt e) {
+
+        String sql = "UPDATE emprunt SET statut='RETURNE' WHERE codeEmprunt=?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setString(1, e.getCodeEmprunt());
+            ps.executeUpdate();
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // ===================== COUNT =====================
+    @Override
+    public int getEmpruntCount() {
+
+        String sql = "SELECT COUNT(*) FROM emprunt";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next())
+                return rs.getInt(1);
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return 0;
     }
 }
