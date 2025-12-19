@@ -26,7 +26,8 @@ public class EmpruntController {
         this.view = view;
 
         view.refreshTable(dao.getAllEmprunts());
-
+        // fetch count from DB and update label
+        updateCount();
 
         initController();
     }
@@ -63,6 +64,7 @@ public class EmpruntController {
 
         dao.deleteEmprunt(emprunt);
         view.refreshTable(dao.getAllEmprunts());
+        updateCount();
     }
 
 
@@ -79,11 +81,20 @@ public class EmpruntController {
             return;
         }
         
+        // Commit any active cell edit so updated values are in the model
+        if (view.getTable().isEditing()) {
+            var editor = view.getTable().getCellEditor();
+            if (editor != null) editor.stopCellEditing();
+        }
+
         String codeEmprunt = view.getTable().getValueAt(Row, 0).toString();
         int numAdherent = Integer.parseInt(view.getTable().getValueAt(Row, 1).toString());
 
-        String dateEmp = view.getTable().getValueAt(Row, 2).toString();
-        String dateRet = view.getTable().getValueAt(Row, 3).toString();
+        Object dateEmpObj = view.getTable().getValueAt(Row, 2);
+        Object dateRetObj = view.getTable().getValueAt(Row, 3);
+        
+        String dateEmp = dateEmpObj == null ? "" : dateEmpObj.toString();
+        String dateRet = dateRetObj == null ? "" : dateRetObj.toString();
         
         SimpleDateFormat sdf;
         if (dateEmp.length() == 10) {
@@ -95,11 +106,18 @@ public class EmpruntController {
         Date dateRetour = null; 
 
         try {
-            dateEmprunt = sdf.parse(dateEmp); 
-            dateRetour = sdf.parse(dateRet); 
+            if (!dateEmp.isEmpty()) {
+                dateEmprunt = sdf.parse(dateEmp);
+            }
+            if (!dateRet.isEmpty() && !dateRet.equalsIgnoreCase("null")) {
+                dateRetour = sdf.parse(dateRet);
+            } else {
+                dateRetour = null;
+            }
             
         } catch (ParseException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(view, "Format de date invalide : " + e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
         }
         String statut = view.getTable().getValueAt(Row, 4).toString();
         String codeLivre = view.getTable().getValueAt(Row, 5).toString();
@@ -117,7 +135,19 @@ public class EmpruntController {
         dao.modifierEmprunt(emprunt);
         JOptionPane.showMessageDialog(view, "Emprunt modifié avec succès !");
         view.refreshTable(dao.getAllEmprunts());
+        updateCount();
 
+    }
+
+    // Update the total emprunt label by querying the database
+    private void updateCount() {
+        try {
+            int total = dao.getEmpruntCount();
+            view.getLabel4Emp().setText("Total Emprunts: " + total);
+        } catch (Exception ex) {
+            // don't crash the UI for a counting failure; log instead
+            System.err.println("Erreur lors du calcul du nombre d'emprunts: " + ex.getMessage());
+        }
     }
 
 }
