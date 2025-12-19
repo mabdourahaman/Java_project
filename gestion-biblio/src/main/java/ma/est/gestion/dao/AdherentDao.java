@@ -2,6 +2,7 @@ package ma.est.gestion.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import ma.est.gestion.model.Adherent;
@@ -26,6 +27,30 @@ public class AdherentDao implements AdherentDaoi {
             e.printStackTrace();
         }
     }
+
+    public Adherent getByEmail(String email) {
+    Adherent adherent = null;
+    String sql = "SELECT * FROM adherent WHERE email = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, email);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            adherent = new Adherent(
+                rs.getInt("id"),
+                rs.getString("email"),
+                rs.getString("nom"),
+                rs.getString("prenom")
+            );
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return adherent;
+}
+
 
     public void modifier(Adherent adherent) {
         // Code pour modifier un adhérent
@@ -98,5 +123,27 @@ public class AdherentDao implements AdherentDaoi {
             e.printStackTrace();
         }
         return adherents;
+    }
+
+    public List<Adherent> AfficherTousLesAdherents() {
+       List<Adherent> adherents = new ArrayList<>();
+         String sql = "SELECT * FROM adherents";
+
+         try (PreparedStatement stmt = connection.prepareStatement(sql)){
+             var rs = stmt.executeQuery();
+             while (rs.next()) {
+                Adherent adherent = new Adherent();
+                
+                adherent.setNumAdherent(rs.getInt("numAdherent"));
+                adherent.setNomAdherent(rs.getString("nom"));
+                adherent.setPrenomAdherent(rs.getString("prenom"));
+                adherent.setEmailAdherent(rs.getString("email"));
+                adherents.add(adherent);
+             }
+
+            } catch (Exception e) {
+             e.printStackTrace();
+             }
+         return adherents;
     }
 }
