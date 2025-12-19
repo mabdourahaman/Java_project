@@ -30,6 +30,20 @@ public class EmpruntDaoImpl implements EmpruntDao {
         if (e == null) { 
             throw new IllegalArgumentException("Emprunt ne peut pas être null");
         }
+        String empruntactif = "SELECT COUNT(*) FROM emprunt WHERE numAdherent = ? AND statut = 'Actif'";
+        try (PreparedStatement stmt = connection.prepareStatement(empruntactif)) {
+            stmt.setInt(1, e.getNumAdherent());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int count = rs.getInt(1);
+                    if (count >= 3) {
+                        throw new IllegalStateException("Un adhérent ne peut pas avoir plus de 3 emprunts actifs.");
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
 
         String checkSql = "SELECT COUNT(*) FROM emprunt WHERE codeEmprunt = ?";
         String checkExemp = "SELECT nombreExemplaire FROM livre WHERE code = ?";
@@ -42,7 +56,6 @@ public class EmpruntDaoImpl implements EmpruntDao {
              PreparedStatement updateLivreStmt = connection.prepareStatement(updateLivreSql)) {
 
 
-            
             // Vérifier si le nombre d'exemplaires est supérieur à zéro
             insertExemp.setString(1, e.getCodeLivre());
             try (ResultSet rsEx = insertExemp.executeQuery()) {
@@ -343,6 +356,7 @@ public class EmpruntDaoImpl implements EmpruntDao {
     }
 
     @Override
+    @SuppressWarnings("CallToPrintStackTrace")
     public void modifierEmprunt(Emprunt e) {
     if (e == null) {
         throw new IllegalArgumentException("Emprunt null");
@@ -372,4 +386,19 @@ public class EmpruntDaoImpl implements EmpruntDao {
     }
 }
 
+    @SuppressWarnings("CallToPrintStackTrace")
+    @Override
+    public int getEmpruntCount() {
+        String sql = "SELECT COUNT(*) AS total FROM emprunt";
+        int total = 0;
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                total = (rs.getInt("total"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return total;
+    }
 }
