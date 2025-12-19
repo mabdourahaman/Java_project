@@ -75,7 +75,7 @@ public class EmpruntController {
 
         if (Row == -1) {
 
-            JOptionPane.showMessageDialog( view, "Veuillez sélectionner un emprunt à supprimer",
+            JOptionPane.showMessageDialog( view, "Veuillez sélectionner un emprunt à Modifier",
             "Information", JOptionPane.INFORMATION_MESSAGE
             );
             return;
