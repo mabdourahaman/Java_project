@@ -1,6 +1,5 @@
 package ma.est.gestion.dao.impl;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,11 +12,9 @@ import ma.est.gestion.dao.EmpruntDao;
 import ma.est.gestion.model.Adherent;
 import ma.est.gestion.model.Emprunt;
 import ma.est.gestion.model.Livre;
-import ma.est.gestion.util.DatabaseConnection;
 
 public class EmpruntDaoImpl implements EmpruntDao {
 
-    private final Connection connection = DatabaseConnection.getInstance().getConnection();
     
     public EmpruntDaoImpl() {
 
