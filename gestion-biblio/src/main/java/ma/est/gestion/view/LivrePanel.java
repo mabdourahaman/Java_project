@@ -1,161 +1,186 @@
 package ma.est.gestion.view;
 
-import ma.est.gestion.controller.LivreController;
-import ma.est.gestion.model.Livre;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.TableModel;
 
-public class LivrePanel extends JPanel {
+public class LivrePanel extends JFrame {
 
-    // Champs du formulaire
-    private JTextField txtCode, txtTitre, txtAuteur, txtExemplaires;
-    private JComboBox<String> comboCategorie;
-
-    // Tableau d'affichage
+    //TABLE
     private JTable table;
-    private DefaultTableModel model;
 
-    // Contrôleur qui gère la logique métier
-    private LivreController controller;
+    // BOUTONS HEADER
+    private JButton btnAjouter;
+    private JButton btnSupp;
+    private JButton btnGereAdh;
+    private JButton btnGereEmp;
+    private JButton btnRetour;
 
-    public LivrePanel(LivreController controller) {
-        this.controller = controller;         // Injection du contrôleur
-        initUI();                             // Création des composants graphiques
-        controller.chargerLivres();           // Charge les livres dès l'ouverture du panel
-    }
+    //FORMULAIRE 
+    private JPanel formPanel;
+    private JTextField tfId;
+    private JTextField tfCode;
+    private JTextField tfTitre;
+    private JTextField tfAuteur;
+    private JTextField tfEx;
+    private JComboBox<String> cbCategorie;
+    private JButton btnValiderForm;
 
-    private void initUI() {
-        setLayout(new BorderLayout());        // Layout principal
+    // CATEGORIE
+    private JButton btnSelectCat;
 
-        //formulaire
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+    public LivrePanel() {
 
-        // Labels du formulaire
-        JLabel lblCode = new JLabel("Code (ISBN):");
-        JLabel lblTitre = new JLabel("Titre:");
-        JLabel lblAuteur = new JLabel("Auteur:");
-        JLabel lblExemplaires = new JLabel("Nombre Exemplaires:");
-        JLabel lblCat = new JLabel("Catégorie:");
+        setTitle("Gestion Bibliothèque - Admin");
+        setSize(1100, 650);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+        getContentPane().setBackground(new Color(236, 240, 241));
 
-        // Champs de saisie
-        txtCode = new JTextField();
-        txtTitre = new JTextField();
-        txtAuteur = new JTextField();
-        txtExemplaires = new JTextField();
+        //HEADER 
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(44, 62, 80));
+        header.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
-        // Liste déroulante des catégories
-        comboCategorie = new JComboBox<>(new String[]{
-                "Science", "Roman", "Informatique", "Histoire"
+        JLabel title = new JLabel("Gestion des Livres");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+
+        JPanel headerBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        headerBtns.setOpaque(false);
+
+        btnAjouter = styliserBouton("Ajouter", new Color(46, 204, 113));
+        btnSupp = styliserBouton("Supprimer", new Color(231, 76, 60));
+        btnGereAdh = styliserBouton("Gérer adhérents", new Color(52, 152, 219));
+        btnGereEmp = styliserBouton("Gérer emprunts", new Color(241, 196, 15));
+        btnRetour = styliserBouton("Retour accueil", new Color(149, 165, 166));
+
+        headerBtns.add(btnAjouter);
+        headerBtns.add(btnSupp);
+        headerBtns.add(btnGereAdh);
+        headerBtns.add(btnGereEmp);
+        headerBtns.add(btnRetour);
+
+        header.add(title, BorderLayout.WEST);
+        header.add(headerBtns, BorderLayout.EAST);
+
+        add(header, BorderLayout.NORTH);
+
+        // TABLE 
+        table = new JTable();
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        add(scroll, BorderLayout.CENTER);
+
+        // FORMULAIRE
+        formPanel = new JPanel(new GridLayout(6, 2, 8, 8));
+        formPanel.setBorder(new TitledBorder("Informations du livre"));
+        formPanel.setBackground(Color.WHITE);
+
+        tfId = new JTextField();
+        tfCode = new JTextField();
+        tfTitre = new JTextField();
+        tfAuteur = new JTextField();
+        tfEx = new JTextField();
+
+        cbCategorie = new JComboBox<>();
+        cbCategorie.setEditable(true);
+
+        formPanel.add(new JLabel("ID"));
+        formPanel.add(tfId);
+        formPanel.add(new JLabel("Code"));
+        formPanel.add(tfCode);
+        formPanel.add(new JLabel("Titre"));
+        formPanel.add(tfTitre);
+        formPanel.add(new JLabel("Auteur"));
+        formPanel.add(tfAuteur);
+        formPanel.add(new JLabel("Nombre d'exemplaires"));
+        formPanel.add(tfEx);
+
+        btnValiderForm = styliserBouton("Valider", new Color(155, 89, 182));
+
+        JPanel rightPanel = new JPanel(new BorderLayout(5, 5));
+        rightPanel.setBackground(getContentPane().getBackground());
+        rightPanel.add(formPanel, BorderLayout.CENTER);
+        rightPanel.add(btnValiderForm, BorderLayout.SOUTH);
+
+        formPanel.setVisible(false);
+        add(rightPanel, BorderLayout.EAST);
+
+        //FOOTER
+        btnSelectCat = styliserBouton("Ajouter une catégorie", new Color(52, 73, 94));
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        bottom.setBackground(Color.WHITE);
+        bottom.add(new JLabel("Catégories :"));
+        bottom.add(cbCategorie);
+        bottom.add(btnSelectCat);
+
+        add(bottom, BorderLayout.SOUTH);
+
+        // ACTIONS 
+
+        btnAjouter.addActionListener(e -> formPanel.setVisible(true));
+
+        btnRetour.addActionListener(e -> {
+            dispose();
+            new LoginFrame().setVisible(true);
         });
 
-        // Ajout des champs au panel du formulaire
-        formPanel.add(lblCode); formPanel.add(txtCode);
-        formPanel.add(lblTitre); formPanel.add(txtTitre);
-        formPanel.add(lblAuteur); formPanel.add(txtAuteur);
-        formPanel.add(lblExemplaires); formPanel.add(txtExemplaires);
-        formPanel.add(lblCat); formPanel.add(comboCategorie);
+        btnGereAdh.addActionListener(e -> {
+            /*
+             * dispose();
+             * new AdherentPanel().setVisible(true);
+             */
+            JOptionPane.showMessageDialog(this,
+                    "Ouverture interface gestion adhérents");
+        });
 
-        add(formPanel, BorderLayout.NORTH);
-
-        // les boutons
-        JPanel buttonPanel = new JPanel();
-
-        JButton btnAjouter = new JButton("Ajouter");
-        JButton btnModifier = new JButton("Modifier");
-        JButton btnSupprimer = new JButton("Supprimer");
-        JButton btnReset = new JButton("Reset");
-
-        // Ajout des boutons
-        buttonPanel.add(btnAjouter);
-        buttonPanel.add(btnModifier);
-        buttonPanel.add(btnSupprimer);
-        buttonPanel.add(btnReset);
-
-        add(buttonPanel, BorderLayout.CENTER);
-
-        // tableau
-        model = new DefaultTableModel(
-                new String[]{"Code", "Titre", "Auteur", "Exemplaires", "Catégorie"}, 
-                0
-        );                                        // Modèle des colonnes
-        table = new JTable(model);                // JTable pour afficher les livres
-
-        add(new JScrollPane(table), BorderLayout.SOUTH);
-
-        // action des boutons
-        btnAjouter.addActionListener(e -> ajouterLivre());      // Ajout
-        btnModifier.addActionListener(e -> modifierLivre());    // Modification
-        btnSupprimer.addActionListener(e -> supprimerLivre());  // Suppression
-        btnReset.addActionListener(e -> resetForm());           // Réinitialisation
-
-        // Sélection dans le tableau → Remplissage du formulaire
-        table.getSelectionModel().addListSelectionListener(
-                e -> chargerDepuisTable()
-        );
+        btnGereEmp.addActionListener(e -> {
+            /*
+             * dispose();
+             * new EmpruntPanel().setVisible(true);
+             */
+            JOptionPane.showMessageDialog(this,
+                    "Ouverture interface gestion emprunts");
+        });
     }
 
-    // Affiche la liste des livres reçus depuis le contrôleur
-    public void afficherLivres(java.util.List<Livre> livres) {
-        model.setRowCount(0);               // Effacer anciennes données
-
-        for (Livre l : livres) {            // Parcours des livres
-            model.addRow(new Object[]{
-                l.getCode(),
-                l.getTitre(),
-                l.getAuteur(),
-                l.getNombreExemplaire(),
-                l.getCategorie().getCategorie()
-            });
-        }
+    // STYLE
+    private JButton styliserBouton(String text, Color bg) {
+        JButton b = new JButton(text);
+        b.setBackground(bg);
+        b.setForeground(Color.WHITE);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setFocusPainted(false);
+        b.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        return b;
     }
 
-    // méthodes appellant le controller
+    //GETTERS 
+    public JTable getTable() { return table; }
 
-    private void ajouterLivre() {
-        controller.ajouterLivre(              // Transfert des données
-                txtCode.getText(),
-                txtTitre.getText(),
-                txtAuteur.getText(),
-                txtExemplaires.getText(),
-                comboCategorie.getSelectedItem().toString()
-        );
-    }
+    public JButton getBtnAjouter() { return btnAjouter; }
+    public JButton getBtnSupp() { return btnSupp; }
+    public JButton getBtnGereAdh() { return btnGereAdh; }
+    public JButton getBtnGereEmp() { return btnGereEmp; }
+    public JButton getBtnRetour() { return btnRetour; }
 
-    private void modifierLivre() {
-        controller.modifierLivre(
-                txtCode.getText(),
-                txtTitre.getText(),
-                txtAuteur.getText(),
-                txtExemplaires.getText(),
-                comboCategorie.getSelectedItem().toString()
-        );
-    }
+    public JButton getBtnValiderForm() { return btnValiderForm; }
+    public JPanel getFormPanel() { return formPanel; }
 
-    private void supprimerLivre() {
-        controller.supprimerLivre(txtCode.getText());
-    }
+    public JTextField getTfId() { return tfId; }
+    public JTextField getTfCode() { return tfCode; }
+    public JTextField getTfTitre() { return tfTitre; }
+    public JTextField getTfAuteur() { return tfAuteur; }
+    public JTextField getTfEx() { return tfEx; }
+    public JComboBox<String> getCbCategorie() { return cbCategorie; }
 
-    // Réinitialisation des champs du formulaire
-    private void resetForm() {
-        txtCode.setText("");
-        txtTitre.setText("");
-        txtAuteur.setText("");
-        txtExemplaires.setText("");
-        comboCategorie.setSelectedIndex(0);
-    }
+    public JButton getBtnSelectCat() { return btnSelectCat; }
 
-    // Charge un livre sélectionné dans le tableau vers le formulaire
-    private void chargerDepuisTable() {
-        int row = table.getSelectedRow();   // Ligne sélectionnée
-        if (row == -1) return;             // Aucun élément sélectionné
-
-        // Remplissage des champs
-        txtCode.setText(model.getValueAt(row, 0).toString());
-        txtTitre.setText(model.getValueAt(row, 1).toString());
-        txtAuteur.setText(model.getValueAt(row, 2).toString());
-        txtExemplaires.setText(model.getValueAt(row, 3).toString());
-        comboCategorie.setSelectedItem(model.getValueAt(row, 4).toString());
+    public void setTableModel(TableModel model) {
+        table.setModel(model);
     }
 }
