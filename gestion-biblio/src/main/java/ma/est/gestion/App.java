@@ -4,12 +4,7 @@ import javax.swing.SwingUtilities;
 
 import ma.est.gestion.controller.EmpruntController;
 import ma.est.gestion.dao.impl.EmpruntDaoImpl;
-import ma.est.gestion.util.DatabaseConnection;
 import ma.est.gestion.view.EmpruntPanel;
-
-import ma.est.gestion.controller.AdherentController;
-import ma.est.gestion.dao.AdherentDao;
-import ma.est.gestion.view.AdherentPanel;
 
 public class App {
 
@@ -17,13 +12,21 @@ public class App {
     public static void main(String[] args) {
 
         // Exécution de la calsse Adherent panel
-         public static void main(String[] args) {
+
+       /* 
         AdherentPanel view = new AdherentPanel();
         AdherentDao dao = new AdherentDao();
 
         new AdherentController(dao, view);
         view.setVisible(true);
+*/
 
+        
+        
+        EmpruntDaoImpl dao = new EmpruntDaoImpl();
+        EmpruntPanel view = new EmpruntPanel();
+        new EmpruntController(dao, view);
+        view.setVisible(true); 
              
         SwingUtilities.invokeLater(() -> new App());
         /*

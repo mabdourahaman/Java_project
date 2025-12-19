@@ -5,11 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+
 import ma.est.gestion.model.Adherent;
+import ma.est.gestion.util.DatabaseConnection;
 
 public class AdherentDao implements AdherentDaoi {
 
-    private final Connection connection = DBConnection.getInstance().getConnection();
+    private final Connection connection = DatabaseConnection.getInstance().getConnection();
 
     public void ajouter(Adherent adherent) {
         // Code pour ajouter un adhérent

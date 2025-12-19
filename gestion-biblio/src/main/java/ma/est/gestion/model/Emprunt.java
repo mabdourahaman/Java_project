@@ -7,6 +7,8 @@ public class Emprunt {
 
     private String codeEmprunt;
     private int numAdherent;
+    private String NomAdherent;
+    private String emailAdherent;
     private Date dateEmprunt;
     private Date dateRetour;
     private String statut = "Actif";
@@ -46,6 +48,8 @@ public class Emprunt {
         // Enrichir les informations de l'adherent et du livre
 
         this.numAdherent = adherent.getNumAdherent();
+        this.NomAdherent = adherent.getNomAdherent();
+        this.emailAdherent = adherent.getEmailAdherent();
         this.codeLivre = livre.getCode();
 
     }
@@ -55,9 +59,11 @@ public class Emprunt {
     }
 
 
-    public Emprunt(String codeEmprunt2, int numAdherent2, Date dateEmprunt2, Date dateRetour2, String statut2, String codeLivre2) {
+    public Emprunt(String codeEmprunt2, int numAdherent2, String nomAdherent2, String emailAdherent2, Date dateEmprunt2, Date dateRetour2, String statut2, String codeLivre2) {
         this.codeEmprunt = codeEmprunt2;
         this.numAdherent = numAdherent2;
+        this.NomAdherent = nomAdherent2;
+        this.emailAdherent = emailAdherent2;
         this.dateEmprunt = dateEmprunt2;
         this.dateRetour = dateRetour2;
         this.statut = statut2;
@@ -68,6 +74,10 @@ public class Emprunt {
     // Getters
 
 	public int getNumAdherent() { return numAdherent; }
+
+    public String getNomAdherent() { return NomAdherent; }
+
+    public String getEmailAdherent() { return emailAdherent; }
 
     public String getCodeEmprunt() { return codeEmprunt; }
 
@@ -94,6 +104,10 @@ public class Emprunt {
 
     public void setNumAdherent(int numAdherent) { this.numAdherent = numAdherent; }
 
+    public void setNomAdherent(String nomAdherent) { this.NomAdherent = nomAdherent; }
+
+    public void setEmailAdherent(String emailAdherent) { this.emailAdherent = emailAdherent; }
+
     public void setCodeEmprunt(String codeEmprunt) { this.codeEmprunt = codeEmprunt; }
 
     public void setLivre(Livre livre) { this.livre = livre; }
@@ -101,6 +115,5 @@ public class Emprunt {
     public void setAdherent(Adherent adherent) { this.adherent = adherent; }
 
     public void setCodeLivre(String codeLivre) { this.codeLivre = codeLivre; }
-
 
 }
