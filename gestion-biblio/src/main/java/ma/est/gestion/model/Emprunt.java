@@ -39,7 +39,9 @@ public class Emprunt {
         // Construire un codeEmprunt unique
 
         long time = this.dateEmprunt.getTime();
-        this.codeEmprunt = livre.getCode() + "-" + time;
+        String timePrefix = Long.toString(time);
+        if (timePrefix.length() > 5) timePrefix = timePrefix.substring(0, 5);
+        this.codeEmprunt = "EMP-" + livre.getCode() + "-" + timePrefix;
 
         // Enrichir les informations de l'adherent et du livre
 
