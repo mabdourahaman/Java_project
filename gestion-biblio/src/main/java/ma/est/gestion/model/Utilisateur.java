@@ -1,67 +1,33 @@
 package ma.est.gestion.model;
 
-
 public class Utilisateur {
 
-		private int id;
-		private String nom;
-		private String email;
-		private String password;
+    private int id;
+    private String login;
+    private String password;
+    private String statut; // "ACTIF" ou "INACTIF"
+    private Role role;
 
-		public Utilisateur() {}
+    public Utilisateur(int id, String login, String password, String statut, Role role) {
+        this.id = id;
+        this.login = login;
+        this.password = password;
+        this.statut = statut;
+        this.role = role;
+    }
 
-		public Utilisateur(int id, String nom, String email, String password) {
-			this.id = id;
-			this.nom = nom;
-			this.email = email;
-			this.password = password;
-		}
-		public Utilisateur(String nom, String email, String password) {
-			this.nom = nom;
-			this.email = email;
-			this.password = password;
-		}
+    public Utilisateur() {}
 
-		public int getId() {
-			return id;
-		}
+    // Getters & Setters
+    public int getId() { return id; }
+    public String getLogin() { return login; }
+    public String getPassword() { return password; }
+    public String getStatut() { return statut; }
+    public Role getRole() { return role; }
 
-		public void setId(int id) {
-			this.id = id;
-		}
-
-		public String getNom() {
-			return nom;
-		}
-
-		public void setNom(String nom) {
-			this.nom = nom;
-		}
-
-		public String getEmail() {
-			return email;
-		}
-
-		public void setEmail(String email) {
-			this.email = email;
-		}
-
-		public String getPassword() {
-			return password;
-		}
-
-		public void setPassword(String password) {
-			this.password = password;
-		}
-
-
-		public String toString() {
-			return "Utilisateur{" +
-					"id=" + id +
-					", nom='" + nom + '\'' +
-					", email='" + email + '\'' +
-					", password='" + password + '\'' +
-					'}';
-		}
+    public void setId(int id) { this.id = id; }
+    public void setLogin(String login) { this.login = login; }
+    public void setPassword(String password) { this.password = password; }
+    public void setStatut(String statut) { this.statut = statut; }
+    public void setRole(Role role) { this.role = role; }
 }
-
