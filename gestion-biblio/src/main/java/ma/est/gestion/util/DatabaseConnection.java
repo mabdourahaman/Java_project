@@ -4,45 +4,34 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+
+
 public class DatabaseConnection {
-
-	//Instance statique 
-	
 	private static DatabaseConnection instance;
+    private static final String URL =
+            "jdbc:mysql://localhost:3306/gestion_bibliotheque?useSSL=false&serverTimezone=UTC";
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
 
-	
-	// Objet Connection
+    private static Connection connection;
 
-	private Connection connection;
+    private DatabaseConnection() {}
 
-	private final String URL = "jdbc:mysql://localhost:3306/gestion_bibliotheque";
-	private final String USER = "root";
-	private final String PASSWORD = "97005502JinX";
-
-
-    @SuppressWarnings("CallToPrintStackTrace")
-	private DatabaseConnection() {
-
-		try{
-			connection = DriverManager.getConnection(URL, USER, PASSWORD);
-			System.out.println(" Connection MySQL reussie ");
-		} catch (SQLException e ) {
-			e.printStackTrace();
-		}
-		
-	}
+    public static Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            }
+            return connection;
+        } catch (SQLException e) {
+            throw new RuntimeException("Impossible de se connecter à la base", e);
+        }
+    }
 
 	public static DatabaseConnection getInstance() {
-
-		if (instance == null){
-			instance = new DatabaseConnection();
-		}
-		return instance;
-	}
-
-
-	public Connection getConnection() {
-		return connection;
-		
+		  if (instance == null) {
+	            instance = new DatabaseConnection();
+	        }
+	        return instance;
 	}
 }
