@@ -1,16 +1,22 @@
 package ma.est.gestion.dao;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import ma.est.gestion.model.Livre;
+
 import ma.est.gestion.model.Categorie;
+import ma.est.gestion.model.Livre;
 
 public class LivreDao {
 
     private final String URL = "jdbc:mysql://localhost:3306/gestion_bibliotheque";
     private final String USER = "root";
-    private final String PASS = "";
+    private final String PASS = "97005502JinX";
 
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASS);

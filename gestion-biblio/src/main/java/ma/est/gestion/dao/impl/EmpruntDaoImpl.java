@@ -1,6 +1,9 @@
 package ma.est.gestion.dao.impl;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -9,11 +12,11 @@ import ma.est.gestion.dao.EmpruntDao;
 import ma.est.gestion.model.Adherent;
 import ma.est.gestion.model.Emprunt;
 import ma.est.gestion.model.Livre;
-import ma.est.gestion.util.DatabaseConnection;
 
 public class EmpruntDaoImpl implements EmpruntDao {
 
-    private final Connection connection = DatabaseConnection.getInstance().getConnection();
+    
+    public EmpruntDaoImpl() {
 
     // ===================== AJOUT =====================
     @Override
@@ -160,64 +163,7 @@ public class EmpruntDaoImpl implements EmpruntDao {
             ps.setString(1, code);
             ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
 
-                Livre livre = new Livre(
-                        rs.getString("codeLivre"),
-                        rs.getString("titre"),
-                        rs.getString("auteur"),
-                        rs.getInt("nombreExemplaire")
-                );
-
-                Adherent adh = new Adherent(
-                        rs.getInt("numAdherent"),
-                        rs.getString("email"),
-                        rs.getString("nom"),
-                        rs.getString("prenom")
-                );
-
-                Emprunt e = new Emprunt();
-                e.setCodeEmprunt(code);
-                e.setLivre(livre);
-                e.setAdherent(adh);
-                e.setDateEmprunt(rs.getDate("dateEmprunt"));
-                e.setDateRetour(rs.getDate("dateRetour"));
-                e.setStatut(rs.getString("statut"));
-                e.setCodeLivre(livre.getCode());
-                e.setNumAdherent(adh.getNumAdherent());
-
-                return e;
-            }
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        throw new NoSuchElementException("Emprunt introuvable");
-    }
-
-    // ===================== MODIFIER =====================
-    @Override
-    public void modifierEmprunt(Emprunt e) {
-
-        String sql =
-            "UPDATE emprunt SET numAdherent=?, dateEmprunt=?, dateRetour=?, statut=?, codeLivre=? " +
-            "WHERE codeEmprunt=?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
-            ps.setInt(1, e.getNumAdherent());
-            ps.setDate(2, new java.sql.Date(e.getDateEmprunt().getTime()));
-            ps.setDate(3, new java.sql.Date(e.getDateRetour().getTime()));
-            ps.setString(4, e.getStatut());
-            ps.setString(5, e.getCodeLivre());
-            ps.setString(6, e.getCodeEmprunt());
-
-            ps.executeUpdate();
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
 
     // ===================== PAR ADHERENT =====================
     @Override

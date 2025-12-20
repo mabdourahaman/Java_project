@@ -5,7 +5,6 @@ D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\controlle
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\controller\LivreController.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\dao\AdherentDao.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\dao\AdherentDaoi.java
-D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\dao\DBConnection.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\dao\EmpruntDao.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\dao\impl\AdherentDaoImpl.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\dao\impl\EmpruntDaoImpl.java
@@ -20,7 +19,6 @@ D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\model\Liv
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\model\Log.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\model\Role.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\model\Utilisateur.java
-D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\Service\LivreService.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\util\BusinessException.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\util\DatabaseConnection.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\util\PasswordUtil.java
@@ -29,3 +27,4 @@ D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\view\Empr
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\view\LivrePanel.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\view\LoginFrame.java
 D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\view\MainFrame.java
+D:\New folder\Java_project\gestion-biblio\src\main\java\ma\est\gestion\view\UtilisateurPanel.java

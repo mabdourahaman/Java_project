@@ -1,9 +1,28 @@
 package ma.est.gestion.view;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableModel;
+
+import ma.est.gestion.controller.AdherentController;
+import ma.est.gestion.controller.EmpruntController;
+import ma.est.gestion.dao.AdherentDao;
+import ma.est.gestion.dao.impl.EmpruntDaoImpl;
 
 public class LivrePanel extends JFrame {
 
@@ -130,21 +149,17 @@ public class LivrePanel extends JFrame {
         });
 
         btnGereAdh.addActionListener(e -> {
-            /*
-             * dispose();
-             * new AdherentPanel().setVisible(true);
-             */
-            JOptionPane.showMessageDialog(this,
-                    "Ouverture interface gestion adhérents");
+            dispose();
+            AdherentPanel adhPanel = new AdherentPanel();
+            new AdherentController(new AdherentDao(), adhPanel);
+            adhPanel.setVisible(true);
         });
 
         btnGereEmp.addActionListener(e -> {
-            /*
-             * dispose();
-             * new EmpruntPanel().setVisible(true);
-             */
-            JOptionPane.showMessageDialog(this,
-                    "Ouverture interface gestion emprunts");
+            dispose();
+            EmpruntPanel empPanel = new EmpruntPanel();
+            new EmpruntController(new EmpruntDaoImpl(), empPanel);
+            empPanel.setVisible(true);
         });
     }
 

@@ -24,6 +24,21 @@ public class Livre {
         this.categorie = categorie;
     }
 
+    /**
+     * Overloaded constructor used when id is not available (e.g., read from joins)
+     */
+    public Livre(String code, String titre, String auteur, int nombreExemplaire, Categorie categorie) {
+        if (nombreExemplaire < 1)
+            throw new IllegalArgumentException("Exemplaire >= 1");
+
+        this.id = 0; // unknown id
+        this.code = code;
+        this.titre = titre;
+        this.auteur = auteur;
+        this.nombreExemplaire = nombreExemplaire;
+        this.categorie = categorie;
+    }
+
     public int getId() { return id; }
     public String getCode() { return code; }
     public String getTitre() { return titre; }

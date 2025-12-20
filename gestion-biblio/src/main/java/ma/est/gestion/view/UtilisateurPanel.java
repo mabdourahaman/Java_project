@@ -1,7 +1,16 @@
 package ma.est.gestion.view;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import ma.est.gestion.controller.LivreController;
 import ma.est.gestion.dao.LivreDao;
@@ -110,10 +119,16 @@ public class UtilisateurPanel extends JFrame {
                 JOptionPane.INFORMATION_MESSAGE
         );
 
-        /*
-         * dispose();
-         * new EmpruntPanel(livresSelectionnes).setVisible(true);
-         * 
-         */
+        java.util.List<String> livresSelectionnes = new java.util.ArrayList<>();
+        for (int row : rows) {
+            Object titre = livrePanel.getTable().getValueAt(row, 2);
+            livresSelectionnes.add(titre == null ? "" : titre.toString());
+        }
+
+        dispose();
+        EmpruntPanel empPanel = new EmpruntPanel(livresSelectionnes);
+        new ma.est.gestion.controller.EmpruntController(new ma.est.gestion.dao.impl.EmpruntDaoImpl(), empPanel);
+        empPanel.setVisible(true);
+
     }
 }

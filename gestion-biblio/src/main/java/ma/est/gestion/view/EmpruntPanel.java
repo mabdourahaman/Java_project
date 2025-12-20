@@ -16,6 +16,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -28,16 +29,33 @@ import ma.est.gestion.model.Emprunt;
 
 public class EmpruntPanel extends JFrame {
     
-    private final DefaultTableModel tableModelEmp;
-    private final JTable tableEmp;
-    private final JButton buttonModifierEmp, buttonResetEmp, buttonSupprimerEmp;
+    private DefaultTableModel tableModelEmp;
+    private JTable tableEmp;
+    private JButton buttonModifierEmp;
+    private JButton buttonResetEmp;
+    private JButton buttonSupprimerEmp;
 
-    private final JLabel label4Emp;
+    private JLabel label4Emp;
 
     public EmpruntPanel(){
 
         super("Gestion des emprunts");
+        initUI();
+    }
 
+    /**
+     * Constructeur qui affiche la liste des titres sélectionnés (ex: depuis l'interface adhérent)
+     */
+    public EmpruntPanel(java.util.List<String> selectedTitles){
+        this();
+        if (selectedTitles != null && !selectedTitles.isEmpty()){
+            StringBuilder sb = new StringBuilder("Livres sélectionnés:\n\n");
+            for (String s : selectedTitles){ sb.append("• ").append(s).append("\n"); }
+            JOptionPane.showMessageDialog(this, sb.toString(), "Livres sélectionnés", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void initUI(){
         JPanel panEmprunt = new JPanel();
         panEmprunt.setLayout(new BorderLayout());
 

@@ -23,10 +23,6 @@ public interface EmpruntDao {
 
     Emprunt findEmpruntByCode(String codeEmprunt);
 
-    List<Emprunt> findEmpruntsByAdherent(int numAdherent);
-
-    List<Emprunt> findEmpruntsByStatut(String statut);
-
     void cloturerEmprunt(Emprunt e);
 
     int getEmpruntCount();
